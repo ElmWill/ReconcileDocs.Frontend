@@ -6,6 +6,8 @@ import type {
   DashboardSummary,
   DocumentUploadSummary,
   ReconcileRunSummary,
+  SuggestTemplatePayload,
+  SuggestTemplateResult,
   StartReconcileResult,
   UploadDocumentResult
 } from "@/types/api";
@@ -39,6 +41,9 @@ export const reconcileDocsApi = {
   },
   async createTemplate(payload: CreateTemplatePayload) {
     return sendRequest<{ templateDefinitionId: string }>(BackendApiUrl.createTemplate, "POST", payload);
+  },
+  async suggestTemplate(payload: SuggestTemplatePayload) {
+    return sendRequest<SuggestTemplateResult>(BackendApiUrl.suggestTemplate, "POST", payload);
   }
 };
 

@@ -35,7 +35,9 @@ appsettings.Development.json
 /reconcile-docs-frontend/node_modules/
 /reconcile-docs-frontend/.next/
 /reconcile-docs-frontend/out/
+/reconcile-docs-frontend/*.tsbuildinfo
 
 # Misc
 .idea/
 logs/
+__tests__/

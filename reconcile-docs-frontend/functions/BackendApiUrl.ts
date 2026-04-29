@@ -9,5 +9,6 @@ export const BackendApiUrl = {
   uploadSpreadsheet: `${baseUrl}/api/documents/spreadsheet`,
   uploadStatement: `${baseUrl}/api/documents/statement`,
   startReconcile: `${baseUrl}/api/documents/reconcile`,
-  createTemplate: `${baseUrl}/api/templates`
+  createTemplate: `${baseUrl}/api/templates`,
+  suggestTemplate: `${baseUrl}/api/templates/suggest`
 };

@@ -36,7 +36,7 @@ export function ReconcileDocsApp() {
         <div className="space-y-4">
           <DocumentUploadForm onUploaded={refreshAll} />
           <ReconcileForm uploads={uploads.data ?? []} onReconciled={refreshAll} />
-          <TemplateCreateForm onCreated={refreshAll} />
+          <TemplateCreateForm onCreated={refreshAll} uploads={uploads.data ?? []} />
         </div>
       </section>
     </div>

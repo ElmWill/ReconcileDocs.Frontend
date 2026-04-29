@@ -56,6 +56,21 @@ export interface CreateTemplatePayload {
   isActive: boolean;
 }
 
+export interface SuggestTemplatePayload {
+  uploadId: string;
+}
+
+export interface SuggestTemplateResult {
+  nameSuggestion: string;
+  documentKind: DocumentKind;
+  parserKey: string;
+  skipRows: number;
+  datePatterns: string[];
+  descriptionColumnHints: string[];
+  amountColumnHints: string[];
+  suggestedConfigurationJson: string;
+}
+
 export interface ApiProblem {
   status: number;
   title: string;

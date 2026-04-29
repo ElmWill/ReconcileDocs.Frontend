@@ -43,7 +43,8 @@ export default async function gatewayHandler(request: NextApiRequest, response: 
   };
 
   if (!["GET", "HEAD"].includes(request.method ?? "GET")) {
-    init.body = await readRawBody(request);
+    const rawBody = await readRawBody(request);
+    init.body = new Uint8Array(rawBody);
   }
 
   const backendResponse = await fetch(targetUrl, init);
