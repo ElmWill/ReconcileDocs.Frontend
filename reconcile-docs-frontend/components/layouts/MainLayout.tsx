@@ -3,21 +3,22 @@ import { PageContainer } from "@/components/layouts/PageContainer";
 
 export function MainLayout({ children }: PropsWithChildren) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(0,184,255,0.18),transparent_34%),linear-gradient(180deg,#07111e_0%,#050b14_100%)] text-sand-100">
-      <header className="border-b border-white/10 bg-slate-950/40 backdrop-blur-xl">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-950 to-black text-sand-100">
+      <header className="bg-transparent backdrop-blur-sm">
         <PageContainer>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 py-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-cyan-300/70">Reconcile Docs</p>
-              <h1 className="mt-1 text-xl font-semibold">Document reconciliation dashboard</h1>
+              <h1 className="text-lg font-semibold">Reconcile Docs</h1>
+              <p className="text-sm text-sand-100/70">Quickly upload and reconcile statements</p>
             </div>
-            <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-sand-100/70">
-              Backend proxy: /api/gateway
-            </div>
+            <nav className="flex gap-3 items-center">
+              <a className="text-sm text-sand-100/70 hover:text-white" href="#">Dashboard</a>
+              <a className="text-sm text-sand-100/70 hover:text-white" href="#upload">Upload</a>
+            </nav>
           </div>
         </PageContainer>
       </header>
-      <main>{children}</main>
+      <main className="py-8">{children}</main>
     </div>
   );
 }
