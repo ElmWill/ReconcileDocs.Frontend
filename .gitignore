@@ -1,0 +1,41 @@
+# Visual Studio / .NET
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+TestResults/
+*.ncrunch*
+packages/
+*.nupkg
+*.snupkg
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+*.mdb
+*.ldf
+*.sql
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets and config
+secrets.json
+appsettings.Development.json
+.env
+.env.*.local
+
+# Node / frontend build outputs (frontend folder)
+/reconcile-docs-frontend/node_modules/
+/reconcile-docs-frontend/.next/
+/reconcile-docs-frontend/out/
+
+# Misc
+.idea/
+logs/
