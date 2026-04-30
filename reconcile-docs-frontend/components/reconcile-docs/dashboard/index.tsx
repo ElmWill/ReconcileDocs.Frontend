@@ -22,20 +22,20 @@ function formatDate(value?: string | null) {
 
 export function DashboardView({ summary, uploads, runs, isLoading }: Props) {
   const cards = [
-    { label: "Uploaded files", value: summary?.uploadedDocuments ?? 0 },
-    { label: "Reconcile runs", value: summary?.reconcileRuns ?? 0 },
-    { label: "Active templates", value: summary?.activeTemplates ?? 0 },
-    { label: "Successful runs", value: summary?.successfulRuns ?? 0 },
-    { label: "Failed runs", value: summary?.failedRuns ?? 0 }
+    { label: "Uploaded files", value: summary?.uploadedDocuments ?? null },
+    { label: "Reconcile runs", value: summary?.reconcileRuns ?? null },
+    { label: "Active templates", value: summary?.activeTemplates ?? null },
+    { label: "Successful runs", value: summary?.successfulRuns ?? null },
+    { label: "Failed runs", value: summary?.failedRuns ?? null }
   ];
 
   return (
     <div className="space-y-6">
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {cards.map((card) => (
-          <Card key={card.label}>
-            <p className="text-xs uppercase tracking-[0.24em] text-cyan-300/70">{card.label}</p>
-            <p className="mt-3 text-4xl font-semibold text-sand-100">{isLoading ? "…" : card.value}</p>
+          <Card key={card.label} className="min-h-[88px] flex flex-col justify-center">
+            <p className="text-xs uppercase tracking-[0.12em] text-slate-400">{card.label}</p>
+            <p className="mt-2 text-2xl font-semibold text-slate-900">{isLoading ? "…" : card.value ?? "—"}</p>
           </Card>
         ))}
       </section>
@@ -55,16 +55,16 @@ export function DashboardView({ summary, uploads, runs, isLoading }: Props) {
               </thead>
               <tbody>
                 {(uploads ?? []).map((upload) => (
-                  <tr key={upload.id} className="border-b border-white/5 last:border-b-0">
-                    <td className="py-3 pr-3 font-medium text-sand-100">{upload.originalFileName}</td>
-                    <td className="py-3 pr-3 text-sand-100/70">{upload.contentType}</td>
-                    <td className="py-3 pr-3 text-sand-100/70">{Math.round(upload.sizeBytes / 1024)} KB</td>
-                    <td className="py-3 pr-3 text-sand-100/70">{formatDate(upload.uploadedAtUtc)}</td>
+                  <tr key={upload.id} className="border-b last:border-b-0">
+                    <td className="py-3 pr-3 font-medium text-slate-800">{upload.originalFileName}</td>
+                    <td className="py-3 pr-3 text-slate-600">{upload.contentType}</td>
+                    <td className="py-3 pr-3 text-slate-600">{Math.round(upload.sizeBytes / 1024)} KB</td>
+                    <td className="py-3 pr-3 text-slate-600">{formatDate(upload.uploadedAtUtc)}</td>
                   </tr>
                 ))}
                 {!(uploads?.length) && (
                   <tr>
-                    <td className="py-4 text-sand-100/50" colSpan={4}>
+                    <td className="py-4 text-slate-500" colSpan={4}>
                       No uploads yet.
                     </td>
                   </tr>
@@ -88,16 +88,16 @@ export function DashboardView({ summary, uploads, runs, isLoading }: Props) {
               </thead>
               <tbody>
                 {(runs ?? []).map((run) => (
-                  <tr key={run.id} className="border-b border-white/5 last:border-b-0">
-                    <td className="py-3 pr-3 font-medium text-sand-100">{run.parserName}</td>
-                    <td className="py-3 pr-3 text-sand-100/70">{run.matchedCount}</td>
-                    <td className="py-3 pr-3 text-sand-100/70">{run.unmatchedCount}</td>
-                    <td className="py-3 pr-3 text-sand-100/70">{formatDate(run.startedAtUtc)}</td>
+                  <tr key={run.id} className="border-b last:border-b-0">
+                    <td className="py-3 pr-3 font-medium text-slate-800">{run.parserName}</td>
+                    <td className="py-3 pr-3 text-slate-600">{run.matchedCount}</td>
+                    <td className="py-3 pr-3 text-slate-600">{run.unmatchedCount}</td>
+                    <td className="py-3 pr-3 text-slate-600">{formatDate(run.startedAtUtc)}</td>
                   </tr>
                 ))}
                 {!(runs?.length) && (
                   <tr>
-                    <td className="py-4 text-sand-100/50" colSpan={4}>
+                    <td className="py-4 text-slate-500" colSpan={4}>
                       No reconcile runs yet.
                     </td>
                   </tr>

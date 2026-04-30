@@ -48,6 +48,17 @@ export interface StartReconcileResult {
   errorCount: number;
 }
 
+export interface ReconcileProgressResult {
+  runId: string;
+  status: number;
+  matchedCount: number;
+  unmatchedCount: number;
+  errorCount: number;
+  startedAtUtc: string;
+  completedAtUtc: string | null;
+  errorMessage: string | null;
+}
+
 export interface CreateTemplatePayload {
   name: string;
   documentKind: DocumentKind;

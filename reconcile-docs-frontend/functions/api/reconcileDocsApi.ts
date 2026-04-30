@@ -9,7 +9,8 @@ import type {
   SuggestTemplatePayload,
   SuggestTemplateResult,
   StartReconcileResult,
-  UploadDocumentResult
+  UploadDocumentResult,
+  ReconcileProgressResult
 } from "@/types/api";
 
 async function sendRequest<T>(url: string, method: string, body?: unknown) {
@@ -36,8 +37,14 @@ export const reconcileDocsApi = {
     formData.append("file", file);
     return sendRequest<UploadDocumentResult>(BackendApiUrl.uploadStatement, "POST", formData);
   },
-  async startReconcile(payload: { spreadsheetUploadId: string; statementUploadId: string }) {
+  async startReconcile(payload: { spreadsheetUploadId: string; statementUploadId: string; password?: string }) {
     return sendRequest<StartReconcileResult>(BackendApiUrl.startReconcile, "POST", payload);
+  },
+  async startReconcileAsync(payload: { spreadsheetUploadId: string; statementUploadId: string; password?: string }) {
+    return sendRequest<StartReconcileResult>(BackendApiUrl.startReconcileAsync, "POST", payload);
+  },
+  async getReconcileProgress(runId: string) {
+    return sendRequest<ReconcileProgressResult>(BackendApiUrl.getReconcileProgress(runId), "GET");
   },
   async createTemplate(payload: CreateTemplatePayload) {
     return sendRequest<{ templateDefinitionId: string }>(BackendApiUrl.createTemplate, "POST", payload);

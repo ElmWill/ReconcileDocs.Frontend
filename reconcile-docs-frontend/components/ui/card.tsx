@@ -3,7 +3,15 @@ import { cn } from "@/utils/cn";
 
 export function Card({ className, children, ...props }: PropsWithChildren<HTMLAttributes<HTMLDivElement>>) {
   return (
-    <div className={cn("rounded-3xl border border-white/10 bg-white/5 p-5 shadow-glow backdrop-blur-md", className)} {...props}>
+    <div
+      className={cn(
+        "rounded-2xl border bg-white p-6 shadow-sm",
+        "border-slate-200",
+        "",
+        className
+      )}
+      {...props}
+    >
       {children}
     </div>
   );
@@ -11,7 +19,7 @@ export function Card({ className, children, ...props }: PropsWithChildren<HTMLAt
 
 export function CardTitle({ className, children, ...props }: PropsWithChildren<HTMLAttributes<HTMLHeadingElement>>) {
   return (
-    <h2 className={cn("text-lg font-semibold tracking-tight text-sand-100", className)} {...props}>
+    <h2 className={cn("text-lg font-semibold tracking-tight text-slate-800", className)} {...props}>
       {children}
     </h2>
   );
@@ -19,7 +27,7 @@ export function CardTitle({ className, children, ...props }: PropsWithChildren<H
 
 export function CardBody({ className, children, ...props }: PropsWithChildren<HTMLAttributes<HTMLDivElement>>) {
   return (
-    <div className={cn("mt-4 space-y-4", className)} {...props}>
+    <div className={cn("mt-4 space-y-4 text-slate-700", className)} {...props}>
       {children}
     </div>
   );

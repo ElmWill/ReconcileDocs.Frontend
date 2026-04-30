@@ -9,6 +9,8 @@ export const BackendApiUrl = {
   uploadSpreadsheet: `${baseUrl}/api/documents/spreadsheet`,
   uploadStatement: `${baseUrl}/api/documents/statement`,
   startReconcile: `${baseUrl}/api/documents/reconcile`,
+  startReconcileAsync: `${baseUrl}/api/documents/reconcile-async`,
+  getReconcileProgress: (runId: string) => `${baseUrl}/api/documents/reconcile/${runId}/progress`,
   createTemplate: `${baseUrl}/api/templates`,
   suggestTemplate: `${baseUrl}/api/templates/suggest`
 };
