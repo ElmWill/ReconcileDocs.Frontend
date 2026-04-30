@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import useSWR from "swr";
 import { DashboardView } from "@/components/reconcile-docs/dashboard";
+import { BulkUploadCard } from "@/components/reconcile-docs/bulk-upload";
 import { Card, CardBody, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BackendApiUrl } from "@/functions/BackendApiUrl";
@@ -206,6 +207,15 @@ export function ReconcileDocsApp() {
           {/* How it works removed per request */}
         </div>
       </section>
+
+      <section id="bulk" className="grid gap-6">
+        <BulkUploadCard
+          spreadsheetUploadId={spreadsheetUpload?.id ?? null}
+          onUploadComplete={refreshAll}
+          onBulkReconcileStart={refreshAll}
+        />
+      </section>
     </div>
   );
 }
+

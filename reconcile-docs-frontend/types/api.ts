@@ -59,6 +59,26 @@ export interface ReconcileProgressResult {
   errorMessage: string | null;
 }
 
+export interface BulkUploadFileInfo {
+  fileName: string;
+  fileHash: string;
+  isDuplicate: boolean;
+  duplicateOf: string | null;
+  detectedPeriod: string | null;
+  documentUploadId: string;
+}
+
+export interface BulkUploadStatementsResult {
+  uploadedFiles: BulkUploadFileInfo[];
+  duplicateHashes: string[];
+  groupsByPeriod: Record<string, BulkUploadFileInfo[]>;
+}
+
+export interface BulkReconcileResult {
+  enqueuedRunIds: string[];
+  totalEnqueued: number;
+}
+
 export interface CreateTemplatePayload {
   name: string;
   documentKind: DocumentKind;
