@@ -12,6 +12,13 @@ export const BackendApiUrl = {
   startReconcile: `${baseUrl}/api/documents/reconcile`,
   startReconcileAsync: `${baseUrl}/api/documents/reconcile-async`,
   getReconcileProgress: (runId: string) => `${baseUrl}/api/documents/reconcile/${runId}/progress`,
+  getReconcileMatches: (runId: string, pageNumber?: number, pageSize?: number, matchedOnly?: boolean) => {
+    const params = new URLSearchParams();
+    if (pageNumber) params.append('pageNumber', pageNumber.toString());
+    if (pageSize) params.append('pageSize', pageSize.toString());
+    if (matchedOnly !== undefined) params.append('matchedOnly', matchedOnly.toString());
+    return `${baseUrl}/api/documents/reconcile/${runId}/matches${params.toString() ? '?' + params.toString() : ''}`;
+  },
   bulkReconcile: `${baseUrl}/api/documents/reconcile/bulk`,
   createTemplate: `${baseUrl}/api/templates`,
   suggestTemplate: `${baseUrl}/api/templates/suggest`

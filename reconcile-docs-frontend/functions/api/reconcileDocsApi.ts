@@ -12,7 +12,8 @@ import type {
   UploadDocumentResult,
   ReconcileProgressResult,
   BulkUploadStatementsResult,
-  BulkReconcileResult
+  BulkReconcileResult,
+  GetReconcileMatchesResult
 } from "@/types/api";
 
 async function sendRequest<T>(url: string, method: string, body?: unknown) {
@@ -47,6 +48,9 @@ export const reconcileDocsApi = {
   },
   async getReconcileProgress(runId: string) {
     return sendRequest<ReconcileProgressResult>(BackendApiUrl.getReconcileProgress(runId), "GET");
+  },
+  async getReconcileMatches(runId: string, pageNumber?: number, pageSize?: number, matchedOnly?: boolean) {
+    return sendRequest<GetReconcileMatchesResult>(BackendApiUrl.getReconcileMatches(runId, pageNumber, pageSize, matchedOnly), "GET");
   },
   async bulkUploadStatements(files: File[], spreadsheetUploadId: string) {
     const formData = new FormData();

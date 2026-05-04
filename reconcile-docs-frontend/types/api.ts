@@ -79,6 +79,26 @@ export interface BulkReconcileResult {
   totalEnqueued: number;
 }
 
+export interface ReconcileMatchDto {
+  id: string;
+  spreadsheetRowNumber: number;
+  statementRowNumber: number;
+  description: string;
+  amount: number;
+  isMatched: boolean;
+  spreadsheetDescription: string | null;
+  spreadsheetAmount: number | null;
+  spreadsheetTransactionDate: string | null;
+  statementDescription: string | null;
+  statementAmount: number;
+  statementTransactionDate: string | null;
+}
+
+export interface GetReconcileMatchesResult {
+  matches: ReconcileMatchDto[];
+  total: number;
+}
+
 export interface CreateTemplatePayload {
   name: string;
   documentKind: DocumentKind;
