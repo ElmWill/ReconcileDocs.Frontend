@@ -21,6 +21,7 @@ export function ReconcileDocsApp() {
   const [pdfPassword, setPdfPassword] = useState<string>("");
   const [reconcileRunId, setReconcileRunId] = useState<string | null>(null);
   const [progressPoll, setProgressPoll] = useState<boolean>(false);
+  const [lastProgressData, setLastProgressData] = useState<ReconcileProgressResult | null>(null);
   const [selectedSpreadsheetUploadId, setSelectedSpreadsheetUploadId] = useState<string | null>(null);
   const [selectedStatementUploadId, setSelectedStatementUploadId] = useState<string | null>(null);
   const excelInputRef = useRef<HTMLInputElement | null>(null);
@@ -34,6 +35,7 @@ export function ReconcileDocsApp() {
       // Adaptive polling: poll faster while running, slower otherwise; zero disables polling
       refreshInterval: (data: ReconcileProgressResult | undefined) => {
         if (!data) return 3000; // initial: 3s
+        if (data.status === 0) return 2000; // queued: keep polling until the worker starts
         if (data.status === 1) return 2000; // running: 2s
         return 0; // complete/failed: stop polling
       },
@@ -42,6 +44,12 @@ export function ReconcileDocsApp() {
       shouldRetryOnError: false,
     }
   );
+
+  useEffect(() => {
+    if (progressData) {
+      setLastProgressData(progressData);
+    }
+  }, [progressData]);
 
   // Stop polling when job completes (status 2 = complete, 3 = failed)
   useEffect(() => {
@@ -218,10 +226,6 @@ export function ReconcileDocsApp() {
                   <span className="w-4 h-4 rounded-full bg-current/20 flex items-center justify-center">{statementUpload ? "✓" : "○"}</span>
                   PDF uploaded
                 </li>
-                <li className="flex items-center gap-2 text-slate-400">
-                  <span className="w-4 h-4 rounded-full bg-current/20 flex items-center justify-center">○</span>
-                  Template available
-                </li>
               </ul>
 
               <div className="space-y-3">
@@ -275,38 +279,48 @@ export function ReconcileDocsApp() {
                   {progressPoll ? "Reconciling..." : "Reconcile"}
                 </Button>
                 {message ? <p className="mt-2 text-base text-slate-700">{message}</p> : null}
-                {progressPoll && progressData && (
+                {(progressPoll || lastProgressData) && (progressData ?? lastProgressData) && (
                   <div className="mt-3 p-3 bg-slate-50 rounded border border-slate-200">
                     <div className="text-sm font-medium text-slate-700 mb-2">Progress</div>
                     <div className="space-y-1 text-sm text-slate-600">
-                      <div>Status: {progressData.status === 0 ? "Queued" : progressData.status === 1 ? "Running" : progressData.status === 2 ? "Complete" : (progressData.matchedCount + progressData.unmatchedCount) > 0 ? "Complete with warnings" : "Failed"}</div>
-                      <div>Matched: {progressData.matchedCount}</div>
-                      <div>Unmatched: {progressData.unmatchedCount}</div>
-                      {progressData.errorMessage && <div className="text-red-600">Error: {progressData.errorMessage}</div>}
+                      {(() => {
+                        const activeProgress = progressData ?? lastProgressData;
+                        if (!activeProgress) return null;
+                        return (
+                          <>
+                            <div>Status: {activeProgress.status === 0 ? "Queued" : activeProgress.status === 1 ? "Running" : activeProgress.status === 2 ? "Complete" : (activeProgress.matchedCount + activeProgress.unmatchedCount) > 0 ? "Complete with warnings" : "Failed"}</div>
+                            <div>Matched: {activeProgress.matchedCount}</div>
+                            <div>Unmatched: {activeProgress.unmatchedCount}</div>
+                            {activeProgress.errorMessage && <div className="text-red-600">Error: {activeProgress.errorMessage}</div>}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
 
-                {(progressData?.status === 2 || progressData?.status === 3) && reconcileRunId && (
+                {reconcileRunId && (
                   <div className="mt-4 border-t border-slate-200 pt-4">
-                    <ReconcileResults runId={reconcileRunId} matchedCount={progressData.matchedCount} unmatchedCount={progressData.unmatchedCount} />
+                    <ReconcileResults
+                      runId={reconcileRunId}
+                      matchedCount={(progressData ?? lastProgressData)?.matchedCount ?? 0}
+                      unmatchedCount={(progressData ?? lastProgressData)?.unmatchedCount ?? 0}
+                    />
                   </div>
                 )}
               </div>
             </CardBody>
           </Card>
-
-          {/* How it works removed per request */}
         </div>
       </section>
 
-      <section id="bulk" className="grid gap-6">
+      {/* <section id="bulk" className="grid gap-6">
         <BulkUploadCard
           spreadsheetUploadId={selectedSpreadsheetUploadId}
           onUploadComplete={refreshAll}
           onBulkReconcileStart={refreshAll}
         />
-      </section>
+      </section> */}
 
     </div>
   );

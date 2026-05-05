@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import useSWR from "swr";
 import { Card, CardBody, CardTitle } from "@/components/ui/card";
 import { reconcileDocsApi } from "@/functions/api/reconcileDocsApi";
-import { useSwrFetcherWithAccessToken } from "@/functions/useSwrFetcherWithAccessToken";
 import type { GetReconcileMatchesResult } from "@/types/api";
 
 interface ReconcileResultsProps {
@@ -22,11 +20,14 @@ function formatDate(value?: string | null) {
 }
 
 export function ReconcileResults({ runId, matchedCount, unmatchedCount }: ReconcileResultsProps) {
-  const fetcher = useSwrFetcherWithAccessToken();
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const [filter, setFilter] = useState<"all" | "matched" | "unmatched">("all");
   const [pageNumber, setPageNumber] = useState(1);
   const pageSize = 20;
+  const expectedRowCount = matchedCount + unmatchedCount;
+  const [results, setResults] = useState<GetReconcileMatchesResult | null>(null);
+  const [resultsLoading, setResultsLoading] = useState(false);
+  const [resultsError, setResultsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!runId || (!matchedCount && !unmatchedCount)) {
@@ -36,25 +37,79 @@ export function ReconcileResults({ runId, matchedCount, unmatchedCount }: Reconc
     resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [runId, matchedCount, unmatchedCount]);
 
-  const matchedOnly = filter === "matched" ? true : filter === "unmatched" ? false : undefined;
-  const { data: results } = useSWR<GetReconcileMatchesResult>(
-    runId ? () => reconcileDocsApi.getReconcileMatches(runId, pageNumber, pageSize, matchedOnly) : null,
-    fetcher
-  );
+  useEffect(() => {
+    if (!runId) {
+      return;
+    }
 
-  if (!runId || (!matchedCount && !unmatchedCount)) {
+    const activeRunId = runId;
+    const matchedOnly = filter === "matched" ? true : filter === "unmatched" ? false : undefined;
+    let cancelled = false;
+    let timerId: number | null = null;
+
+    async function loadResults() {
+      setResultsLoading(true);
+      const response = await reconcileDocsApi.getReconcileMatches(activeRunId, pageNumber, pageSize, matchedOnly);
+
+      if (cancelled) {
+        return;
+      }
+
+      if (response.error) {
+        setResultsError(response.problem?.title ?? response.error.message);
+        setResults(null);
+      } else {
+        setResultsError(null);
+        setResults(response.data ?? null);
+      }
+
+      setResultsLoading(false);
+
+      if (!cancelled && !(response.data?.matches?.length ?? 0)) {
+        timerId = window.setTimeout(() => {
+          void loadResults();
+        }, 1500);
+      }
+    }
+
+    void loadResults();
+
+    return () => {
+      cancelled = true;
+      if (timerId !== null) {
+        window.clearTimeout(timerId);
+      }
+    };
+  }, [runId, pageNumber, pageSize, filter, expectedRowCount]);
+
+  if (!runId) {
     return null;
   }
 
+  const hasMatches = (results?.matches?.length ?? 0) > 0;
+
   const displayCount = filter === "matched" ? matchedCount : filter === "unmatched" ? unmatchedCount : matchedCount + unmatchedCount;
   const maxPages = Math.ceil((displayCount || 1) / pageSize);
-  const previewMatches = results?.matches?.slice(0, 5) ?? [];
+  const previewMatches = (results?.matches ?? []).slice(0, 5);
+  const visibleMatches = results?.matches ?? [];
 
   return (
     <div ref={resultsRef} className="mt-6">
       <Card>
         <CardTitle>Reconciliation Results</CardTitle>
         <CardBody className="space-y-4">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+          Showing live reconcile row data. Green cards are matched rows; red cards are statement rows with no spreadsheet match.
+        </div>
+        {resultsError ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            Unable to load reconcile rows: {resultsError}
+          </div>
+        ) : !hasMatches ? (
+          <div className="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-600">
+            {resultsLoading ? "Loading row data..." : "Waiting for row data to appear..."}
+          </div>
+        ) : null}
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {previewMatches.map((match) => (
             <div key={match.id} className={`rounded-lg border p-3 ${match.isMatched ? "border-emerald-200 bg-emerald-50/60" : "border-red-200 bg-red-50/60"}`}>
@@ -109,8 +164,8 @@ export function ReconcileResults({ runId, matchedCount, unmatchedCount }: Reconc
               </tr>
             </thead>
             <tbody>
-              {results?.matches && results.matches.length > 0 ? (
-                results.matches.map((match) => (
+              {visibleMatches.length > 0 ? (
+                visibleMatches.map((match) => (
                   <tr key={match.id} className="border-b border-slate-100 hover:bg-slate-50">
                     <td className="px-4 py-3 text-slate-700 align-top">
                       <div className="text-xs uppercase tracking-[0.12em] text-slate-400 mb-1">Statement row #{match.statementRowNumber}</div>

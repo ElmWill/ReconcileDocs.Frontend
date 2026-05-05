@@ -49,6 +49,9 @@ export const reconcileDocsApi = {
   async getReconcileProgress(runId: string) {
     return sendRequest<ReconcileProgressResult>(BackendApiUrl.getReconcileProgress(runId), "GET");
   },
+  async getMatchedData(runId: string, pageNumber?: number, pageSize?: number) {
+    return sendRequest<GetReconcileMatchesResult>(BackendApiUrl.getMatchedData(runId, pageNumber, pageSize), "GET");
+  },
   async getReconcileMatches(runId: string, pageNumber?: number, pageSize?: number, matchedOnly?: boolean) {
     return sendRequest<GetReconcileMatchesResult>(BackendApiUrl.getReconcileMatches(runId, pageNumber, pageSize, matchedOnly), "GET");
   },

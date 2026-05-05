@@ -24,7 +24,6 @@ export function DashboardView({ summary, uploads, runs, isLoading }: Props) {
   const cards = [
     { label: "Uploaded files", value: summary?.uploadedDocuments ?? null },
     { label: "Reconcile runs", value: summary?.reconcileRuns ?? null },
-    { label: "Active templates", value: summary?.activeTemplates ?? null },
     { label: "Successful runs", value: summary?.successfulRuns ?? null },
     { label: "Failed runs", value: summary?.failedRuns ?? null }
   ];
@@ -46,25 +45,23 @@ export function DashboardView({ summary, uploads, runs, isLoading }: Props) {
           <CardBody>
             <Table>
               <thead>
-                <tr className="border-b border-white/10 text-xs uppercase tracking-[0.22em] text-sand-100/60">
-                  <th className="py-2 pr-3">File</th>
-                  <th className="py-2 pr-3">Type</th>
-                  <th className="py-2 pr-3">Size</th>
-                  <th className="py-2 pr-3">Uploaded</th>
+                <tr className="border-b border-white/10 text-xs uppercase tracking-[0.22em] text-slate-500">
+                  <th className="py-2 pr-3 text-slate-900">File</th>
+                  <th className="py-2 pr-3 text-slate-900">Size</th>
+                  <th className="py-2 pr-3 text-slate-900">Uploaded</th>
                 </tr>
               </thead>
               <tbody>
                 {(uploads ?? []).map((upload) => (
                   <tr key={upload.id} className="border-b last:border-b-0">
                     <td className="py-3 pr-3 font-medium text-slate-800">{upload.originalFileName}</td>
-                    <td className="py-3 pr-3 text-slate-600">{upload.contentType}</td>
                     <td className="py-3 pr-3 text-slate-600">{Math.round(upload.sizeBytes / 1024)} KB</td>
                     <td className="py-3 pr-3 text-slate-600">{formatDate(upload.uploadedAtUtc)}</td>
                   </tr>
                 ))}
                 {!(uploads?.length) && (
                   <tr>
-                    <td className="py-4 text-slate-500" colSpan={4}>
+                    <td className="py-4 text-slate-500" colSpan={3}>
                       No uploads yet.
                     </td>
                   </tr>
@@ -80,10 +77,10 @@ export function DashboardView({ summary, uploads, runs, isLoading }: Props) {
             <Table>
               <thead>
                 <tr className="border-b border-white/10 text-xs uppercase tracking-[0.22em] text-sand-100/60">
-                  <th className="py-2 pr-3">Parser</th>
-                  <th className="py-2 pr-3">Matched</th>
-                  <th className="py-2 pr-3">Unmatched</th>
-                  <th className="py-2 pr-3">Started</th>
+                  <th className="py-2 pr-3 text-slate-900">Parser</th>
+                  <th className="py-2 pr-3 text-slate-900">Matched</th>
+                  <th className="py-2 pr-3 text-slate-900">Unmatched</th>
+                  <th className="py-2 pr-3 text-slate-900">Started</th>
                 </tr>
               </thead>
               <tbody>
