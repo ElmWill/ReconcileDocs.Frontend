@@ -30,6 +30,14 @@ export function ReconcileResults({ runId, matchedCount, unmatchedCount }: Reconc
   const [resultsError, setResultsError] = useState<string | null>(null);
 
   useEffect(() => {
+    setFilter("all");
+    setPageNumber(1);
+    setResults(null);
+    setResultsError(null);
+    setResultsLoading(false);
+  }, [runId]);
+
+  useEffect(() => {
     if (!runId || (!matchedCount && !unmatchedCount)) {
       return;
     }

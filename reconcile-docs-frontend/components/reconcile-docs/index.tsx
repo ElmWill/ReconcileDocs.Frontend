@@ -302,6 +302,7 @@ export function ReconcileDocsApp() {
                 {reconcileRunId && (
                   <div className="mt-4 border-t border-slate-200 pt-4">
                     <ReconcileResults
+                      key={reconcileRunId}
                       runId={reconcileRunId}
                       matchedCount={(progressData ?? lastProgressData)?.matchedCount ?? 0}
                       unmatchedCount={(progressData ?? lastProgressData)?.unmatchedCount ?? 0}
