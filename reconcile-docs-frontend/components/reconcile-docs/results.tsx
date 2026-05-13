@@ -119,20 +119,37 @@ export function ReconcileResults({ runId, matchedCount, unmatchedCount }: Reconc
           </div>
         ) : null}
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {previewMatches.map((match) => (
-            <div key={match.id} className={`rounded-lg border p-3 ${match.isMatched ? "border-emerald-200 bg-emerald-50/60" : "border-red-200 bg-red-50/60"}`}>
-              <div className="text-xs uppercase tracking-[0.12em] text-slate-500 mb-2">
-                Statement row #{match.statementRowNumber} {match.isMatched ? "matches" : "does not match"}
+          {previewMatches.map((match) => {
+            const spreadsheetOnly = match.statementRowNumber === 0 && match.spreadsheetRowNumber > 0;
+            return (
+              <div key={match.id} className={`rounded-lg border p-3 ${match.isMatched ? "border-emerald-200 bg-emerald-50/60" : "border-red-200 bg-red-50/60"}`}>
+                <div className="text-xs uppercase tracking-[0.12em] text-slate-500 mb-2">
+                  {spreadsheetOnly ? `Spreadsheet row #${match.spreadsheetRowNumber} (no statement)` : `Statement row #${match.statementRowNumber} ${match.isMatched ? "matches" : "does not match"}`}
+                </div>
+
+                <div className="text-sm font-semibold text-slate-800 truncate">
+                  {spreadsheetOnly ? (match.spreadsheetDescription || match.description || "—") : (match.statementDescription || match.description || "—")}
+                </div>
+
+                <div className="mt-2 text-xs text-slate-600 space-y-1">
+                  {spreadsheetOnly ? (
+                    <>
+                      <div>Spreadsheet amount: {match.spreadsheetAmount == null ? "—" : match.spreadsheetAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                      <div>Spreadsheet note: {match.description || "—"}</div>
+                      <div>Statement: Not present</div>
+                    </>
+                  ) : (
+                    <>
+                      <div>Statement amount: {match.statementAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                      <div>Spreadsheet row: {match.isMatched ? `#${match.spreadsheetRowNumber}` : "—"}</div>
+                      <div>Spreadsheet value: {match.spreadsheetDescription || "Not in spreadsheet"}</div>
+                      <div>Spreadsheet amount: {match.spreadsheetAmount == null ? "—" : match.spreadsheetAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="text-sm font-semibold text-slate-800 truncate">{match.statementDescription || match.description || "—"}</div>
-              <div className="mt-2 text-xs text-slate-600 space-y-1">
-                <div>Statement amount: {match.statementAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                <div>Spreadsheet row: {match.isMatched ? `#${match.spreadsheetRowNumber}` : "—"}</div>
-                <div>Spreadsheet value: {match.spreadsheetDescription || "Not in spreadsheet"}</div>
-                <div>Spreadsheet amount: {match.spreadsheetAmount == null ? "—" : match.spreadsheetAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {previewMatches.length === 0 && results?.matches ? (
@@ -173,36 +190,39 @@ export function ReconcileResults({ runId, matchedCount, unmatchedCount }: Reconc
             </thead>
             <tbody>
               {visibleMatches.length > 0 ? (
-                visibleMatches.map((match) => (
-                  <tr key={match.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-3 text-slate-700 align-top">
-                      <div className="text-xs uppercase tracking-[0.12em] text-slate-400 mb-1">Statement row #{match.statementRowNumber}</div>
-                      <div className="font-medium truncate max-w-xs">{match.statementDescription || match.description || "—"}</div>
-                      <div className="text-xs text-slate-500">Amount: {match.statementAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                      <div className="text-xs text-slate-500">Date: {formatDate(match.statementTransactionDate)}</div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-700 align-top">
-                      <div className="text-xs uppercase tracking-[0.12em] text-slate-400 mb-1">
-                        {match.isMatched ? `Spreadsheet row #${match.spreadsheetRowNumber}` : "No spreadsheet row matched"}
-                      </div>
-                      <div className="font-medium truncate max-w-xs">{match.spreadsheetDescription || "Not in spreadsheet"}</div>
-                      <div className="text-xs text-slate-500">Amount: {match.spreadsheetAmount == null ? "—" : match.spreadsheetAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                      <div className="text-xs text-slate-500">Date: {formatDate(match.spreadsheetTransactionDate)}</div>
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      <div className="space-y-2">
-                        <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${match.isMatched ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
-                          {match.isMatched ? "✓ Matched" : "✗ Unmatched"}
-                        </span>
-                        <div className="text-xs text-slate-500 max-w-[180px] mx-auto">
-                          {match.isMatched
-                            ? `Statement row ${match.statementRowNumber} matches spreadsheet row ${match.spreadsheetRowNumber}`
-                            : "Statement row has no spreadsheet match"}
+                visibleMatches.map((match) => {
+                  const spreadsheetOnly = match.statementRowNumber === 0 && match.spreadsheetRowNumber > 0;
+                  return (
+                    <tr key={match.id} className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="px-4 py-3 text-slate-700 align-top">
+                        <div className="text-xs uppercase tracking-[0.12em] text-slate-400 mb-1">{spreadsheetOnly ? `Spreadsheet row #${match.spreadsheetRowNumber}` : `Statement row #${match.statementRowNumber}`}</div>
+                        <div className="font-medium truncate max-w-xs">{spreadsheetOnly ? (match.spreadsheetDescription || match.description || "—") : (match.statementDescription || match.description || "—")}</div>
+                        <div className="text-xs text-slate-500">Amount: { (spreadsheetOnly ? (match.spreadsheetAmount ?? match.amount ?? 0) : match.statementAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        <div className="text-xs text-slate-500">Date: {spreadsheetOnly ? formatDate(match.spreadsheetTransactionDate) : formatDate(match.statementTransactionDate)}</div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-700 align-top">
+                        <div className="text-xs uppercase tracking-[0.12em] text-slate-400 mb-1">
+                          {match.isMatched ? `Spreadsheet row #${match.spreadsheetRowNumber}` : (spreadsheetOnly ? "No statement row matched" : "No spreadsheet row matched")}
                         </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                        <div className="font-medium truncate max-w-xs">{match.spreadsheetDescription || "Not in spreadsheet"}</div>
+                        <div className="text-xs text-slate-500">Amount: {match.spreadsheetAmount == null ? "—" : match.spreadsheetAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        <div className="text-xs text-slate-500">Date: {formatDate(match.spreadsheetTransactionDate)}</div>
+                      </td>
+                      <td className="px-4 py-2 text-center">
+                        <div className="space-y-2">
+                          <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${match.isMatched ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                            {match.isMatched ? "✓ Matched" : "✗ Unmatched"}
+                          </span>
+                          <div className="text-xs text-slate-500 max-w-[180px] mx-auto">
+                            {match.isMatched
+                              ? `Statement row ${match.statementRowNumber} matches spreadsheet row ${match.spreadsheetRowNumber}`
+                              : (spreadsheetOnly ? "Spreadsheet item not found in statement" : "Statement row has no spreadsheet match")}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
