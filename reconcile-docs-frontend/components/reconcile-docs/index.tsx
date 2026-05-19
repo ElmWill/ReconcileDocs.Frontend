@@ -24,6 +24,8 @@ export function ReconcileDocsApp() {
   const [lastProgressData, setLastProgressData] = useState<ReconcileProgressResult | null>(null);
   const [selectedSpreadsheetUploadId, setSelectedSpreadsheetUploadId] = useState<string | null>(null);
   const [selectedStatementUploadId, setSelectedStatementUploadId] = useState<string | null>(null);
+  const [excelDropActive, setExcelDropActive] = useState(false);
+  const [pdfDropActive, setPdfDropActive] = useState(false);
   const excelInputRef = useRef<HTMLInputElement | null>(null);
   const pdfInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -115,6 +117,18 @@ export function ReconcileDocsApp() {
     }
   }
 
+  function handleDropEvent(event: React.DragEvent<HTMLDivElement>, accept: string, onFile: (file?: File | null) => Promise<void>, setActive: (value: boolean) => void) {
+    event.preventDefault();
+    event.stopPropagation();
+    setActive(false);
+    const file = event.dataTransfer.files?.[0] ?? null;
+    if (!file) return;
+    if (!accept.split(",").some((type) => file.name.toLowerCase().endsWith(type.replace(".", "").trim().toLowerCase()))) {
+      return;
+    }
+    void onFile(file);
+  }
+
   const spreadsheetUploads = (uploads.data ?? [])
     .filter((u) => u.contentType.includes("sheet") || u.documentKind === 1)
     .sort((a, b) => (b.uploadedAtUtc ?? "").localeCompare(a.uploadedAtUtc ?? ""));
@@ -179,20 +193,56 @@ export function ReconcileDocsApp() {
           </Card>
 
           {/* Excel upload moved into its own card for clarity */}
-          <Card>
-            <CardTitle>Upload Excel</CardTitle>
-            <CardBody className="flex items-center justify-between gap-4">
-              <div className="text-base text-slate-700">Select an Excel file to populate the monitoring grid.</div>
-              <div>
+          <Card className="border-dashed border-2 border-slate-200/60 bg-white/60">
+            <CardBody
+              className={`min-h-56 flex flex-col items-center justify-center text-center transition-colors ${excelDropActive ? "border-emerald-400 bg-emerald-50/70" : ""}`}
+              onDragEnter={(e) => {
+                e.preventDefault();
+                setExcelDropActive(true);
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setExcelDropActive(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                setExcelDropActive(false);
+              }}
+              onDrop={(e) => handleDropEvent(e, ".xlsx,.xls", handleExcelFile, setExcelDropActive)}
+            >
+              <div className="flex flex-col items-center gap-3">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className="text-slate-400">
+                  <path d="M12 3v6M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <p className="text-slate-700 text-lg font-medium">Upload Excel File</p>
+                <p className="text-base text-slate-600">Drop an Excel file here, or click to browse.</p>
+
                 <input ref={excelInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => handleExcelFile(e.target.files?.[0] ?? null)} />
-                <button type="button" onClick={() => excelInputRef.current?.click()} className="px-4 py-2 rounded border border-dashed border-slate-300 text-slate-700">Click or drop Excel</button>
+                <button type="button" onClick={() => excelInputRef.current?.click()} className="mt-3 px-5 py-2 rounded-md border border-dashed border-slate-300 text-slate-700 hover:border-emerald-400 hover:text-emerald-700">
+                  Click or drag Excel here
+                </button>
               </div>
             </CardBody>
           </Card>
 
           <div>
             <Card className="border-dashed border-2 border-slate-200/60 bg-white/60">
-              <CardBody className="h-56 flex flex-col items-center justify-center text-center">
+              <CardBody
+                className={`min-h-56 flex flex-col items-center justify-center text-center transition-colors ${pdfDropActive ? "border-emerald-400 bg-emerald-50/70" : ""}`}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  setPdfDropActive(true);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setPdfDropActive(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  setPdfDropActive(false);
+                }}
+                onDrop={(e) => handleDropEvent(e, ".pdf", handlePdfFile, setPdfDropActive)}
+              >
                 <div className="flex flex-col items-center gap-3">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className="text-slate-400">
                     <path d="M12 3v6M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -201,7 +251,7 @@ export function ReconcileDocsApp() {
                   <p className="text-base text-slate-600">Upload an invoice or document to compare against the Excel data</p>
 
                   <input ref={pdfInputRef} type="file" accept=".pdf" className="hidden" onChange={(e) => handlePdfFile(e.target.files?.[0] ?? null)} />
-                  <button type="button" onClick={() => pdfInputRef.current?.click()} className="mt-3 px-5 py-2 rounded-md border border-dashed border-slate-300 text-slate-700">Click or drag PDF here</button>
+                  <button type="button" onClick={() => pdfInputRef.current?.click()} className="mt-3 px-5 py-2 rounded-md border border-dashed border-slate-300 text-slate-700 hover:border-emerald-400 hover:text-emerald-700">Click or drag PDF here</button>
                 </div>
               </CardBody>
             </Card>
