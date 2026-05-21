@@ -286,7 +286,7 @@ export function ReconcileDocsApp() {
                   <select
                     value={selectedSpreadsheetUploadId ?? ""}
                     onChange={(e) => setSelectedSpreadsheetUploadId(e.target.value || null)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-900 text-white focus:outline-none focus:border-emerald-500"
                   >
                     <option value="">Choose Excel file</option>
                     {spreadsheetUploads.map((upload) => (
@@ -303,7 +303,7 @@ export function ReconcileDocsApp() {
                   <select
                     value={selectedStatementUploadId ?? ""}
                     onChange={(e) => setSelectedStatementUploadId(e.target.value || null)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-900 text-white focus:outline-none focus:border-emerald-500"
                   >
                     <option value="">Choose PDF file</option>
                     {statementUploads.map((upload) => (
@@ -322,7 +322,7 @@ export function ReconcileDocsApp() {
                     value={pdfPassword}
                     onChange={(e) => setPdfPassword(e.target.value)}
                     placeholder="Leave empty if PDF is not password-protected"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-900 text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <Button onClick={handleAnalyze} disabled={!spreadsheetUpload || !statementUpload || uploading || progressPoll} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white">
