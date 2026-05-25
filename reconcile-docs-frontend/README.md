@@ -1,12 +1,19 @@
 # Reconcile Docs Frontend
 
-Next.js Pages Router frontend for the document reconciliation backend.
+Next.js Pages Router frontend for the reconciliation backend.
 
 ## Setup
 
 1. Install dependencies.
 2. Copy `.env.example` to `.env.local` and set `BACKEND_API_BASE_URL` if your backend is not running at `http://localhost:5052`.
-3. Run the backend first, then start this app.
+3. Start the backend first, then start this app.
+
+## Run
+
+```powershell
+npm install
+npm run dev
+```
 
 ## Scripts
 
@@ -18,5 +25,7 @@ Next.js Pages Router frontend for the document reconciliation backend.
 
 ## Notes
 
+- Files are selected first, then uploaded with the button.
+- PDF passwords are sent during PDF upload.
+- Reconciliation uses the files already parsed and stored by the backend.
 - All frontend requests go through `/api/gateway`, which proxies to the .NET backend.
-- The dashboard shows uploads, reconcile runs, and template creation actions wired to the backend endpoints.
