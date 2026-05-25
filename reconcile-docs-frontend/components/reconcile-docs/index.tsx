@@ -17,6 +17,7 @@ export function ReconcileDocsApp() {
   const runs = useSWR<ReconcileRunSummary[]>(BackendApiUrl.dashboardRuns(20), fetcher);
 
   const [uploading, setUploading] = useState(false);
+  const [uploadingAction, setUploadingAction] = useState<"spreadsheet" | "statement" | "reconcile" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [pdfPassword, setPdfPassword] = useState<string>("");
   const [reconcileRunId, setReconcileRunId] = useState<string | null>(null);
@@ -24,6 +25,8 @@ export function ReconcileDocsApp() {
   const [lastProgressData, setLastProgressData] = useState<ReconcileProgressResult | null>(null);
   const [selectedSpreadsheetUploadId, setSelectedSpreadsheetUploadId] = useState<string | null>(null);
   const [selectedStatementUploadId, setSelectedStatementUploadId] = useState<string | null>(null);
+  const [pendingSpreadsheetFile, setPendingSpreadsheetFile] = useState<File | null>(null);
+  const [pendingStatementFile, setPendingStatementFile] = useState<File | null>(null);
   const [excelDropActive, setExcelDropActive] = useState(false);
   const [pdfDropActive, setPdfDropActive] = useState(false);
   const excelInputRef = useRef<HTMLInputElement | null>(null);
@@ -89,35 +92,19 @@ export function ReconcileDocsApp() {
     await Promise.all([summary.mutate(), uploads.mutate(), runs.mutate()]);
   }
 
-  async function handleExcelFile(file?: File | null) {
+  function handleExcelSelection(file?: File | null) {
     if (!file) return;
-    setUploading(true);
-    setMessage(null);
-    const res = await reconcileDocsApi.uploadSpreadsheet(file);
-    setUploading(false);
-    if (res.error) setMessage(res.problem?.title ?? res.error.message);
-    else {
-      setMessage(`${file.name} uploaded`);
-      setSelectedSpreadsheetUploadId(res.data?.documentUploadId ?? null);
-      await refreshAll();
-    }
+    setPendingSpreadsheetFile(file);
+    setMessage(`Selected Excel: ${file.name}`);
   }
 
-  async function handlePdfFile(file?: File | null) {
+  function handlePdfSelection(file?: File | null) {
     if (!file) return;
-    setUploading(true);
-    setMessage(null);
-    const res = await reconcileDocsApi.uploadStatement(file);
-    setUploading(false);
-    if (res.error) setMessage(res.problem?.title ?? res.error.message);
-    else {
-      setMessage(`${file.name} uploaded`);
-      setSelectedStatementUploadId(res.data?.documentUploadId ?? null);
-      await refreshAll();
-    }
+    setPendingStatementFile(file);
+    setMessage(`Selected PDF: ${file.name}`);
   }
 
-  function handleDropEvent(event: React.DragEvent<HTMLDivElement>, accept: string, onFile: (file?: File | null) => Promise<void>, setActive: (value: boolean) => void) {
+  function handleDropEvent(event: React.DragEvent<HTMLDivElement>, accept: string, onFile: (file?: File | null) => void, setActive: (value: boolean) => void) {
     event.preventDefault();
     event.stopPropagation();
     setActive(false);
@@ -127,6 +114,54 @@ export function ReconcileDocsApp() {
       return;
     }
     void onFile(file);
+  }
+
+  async function uploadPendingSpreadsheet() {
+    if (!pendingSpreadsheetFile) {
+      setMessage("Choose an Excel file first.");
+      return;
+    }
+
+    setUploading(true);
+    setUploadingAction("spreadsheet");
+    setMessage(null);
+    const res = await reconcileDocsApi.uploadSpreadsheet(pendingSpreadsheetFile);
+    setUploading(false);
+    setUploadingAction(null);
+
+    if (res.error) {
+      setMessage(res.problem?.title ?? res.error.message);
+      return;
+    }
+
+    setMessage(`${pendingSpreadsheetFile.name} uploaded`);
+    setSelectedSpreadsheetUploadId(res.data?.documentUploadId ?? null);
+    setPendingSpreadsheetFile(null);
+    await refreshAll();
+  }
+
+  async function uploadPendingStatement() {
+    if (!pendingStatementFile) {
+      setMessage("Choose a PDF file first.");
+      return;
+    }
+
+    setUploading(true);
+    setUploadingAction("statement");
+    setMessage(null);
+    const res = await reconcileDocsApi.uploadStatement(pendingStatementFile, pdfPassword || undefined);
+    setUploading(false);
+    setUploadingAction(null);
+
+    if (res.error) {
+      setMessage(res.problem?.title ?? res.error.message);
+      return;
+    }
+
+    setMessage(`${pendingStatementFile.name} uploaded`);
+    setSelectedStatementUploadId(res.data?.documentUploadId ?? null);
+    setPendingStatementFile(null);
+    await refreshAll();
   }
 
   const spreadsheetUploads = (uploads.data ?? [])
@@ -158,9 +193,11 @@ export function ReconcileDocsApp() {
     }
 
     setUploading(true);
+    setUploadingAction("reconcile");
     setMessage("Starting reconciliation...");
-    const result = await reconcileDocsApi.startReconcileAsync({ spreadsheetUploadId: spreadsheetUpload.id, statementUploadId: statementUpload.id, password: pdfPassword || undefined });
+    const result = await reconcileDocsApi.startReconcileAsync({ spreadsheetUploadId: spreadsheetUpload.id, statementUploadId: statementUpload.id });
     setUploading(false);
+    setUploadingAction(null);
     if (result.error) {
       setMessage(result.problem?.title ?? result.error.message);
     } else {
@@ -208,7 +245,7 @@ export function ReconcileDocsApp() {
                 e.preventDefault();
                 setExcelDropActive(false);
               }}
-              onDrop={(e) => handleDropEvent(e, ".xlsx,.xls", handleExcelFile, setExcelDropActive)}
+              onDrop={(e) => handleDropEvent(e, ".xlsx,.xls", handleExcelSelection, setExcelDropActive)}
             >
               <div className="flex flex-col items-center gap-3">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className="text-slate-400">
@@ -217,9 +254,14 @@ export function ReconcileDocsApp() {
                 <p className="text-slate-700 text-lg font-medium">Upload Excel File</p>
                 <p className="text-base text-slate-600">Drop an Excel file here, or click to browse.</p>
 
-                <input ref={excelInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => handleExcelFile(e.target.files?.[0] ?? null)} />
+                <input ref={excelInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => handleExcelSelection(e.target.files?.[0] ?? null)} />
+                <p className="text-sm text-slate-500">{pendingSpreadsheetFile ? `Ready to upload: ${pendingSpreadsheetFile.name}` : "No Excel file selected yet."}</p>
                 <button type="button" onClick={() => excelInputRef.current?.click()} className="mt-3 px-5 py-2 rounded-md border border-dashed border-slate-300 text-slate-700 hover:border-emerald-400 hover:text-emerald-700">
-                  Click or drag Excel here
+                  Select Excel file
+                </button>
+                <button type="button" onClick={uploadPendingSpreadsheet} disabled={!pendingSpreadsheetFile || uploading || progressPoll} className="mt-2 inline-flex items-center gap-2 px-5 py-2 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50" aria-busy={uploadingAction === "spreadsheet"}>
+                  {uploadingAction === "spreadsheet" && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />}
+                  {uploadingAction === "spreadsheet" ? "Uploading..." : "Upload Excel"}
                 </button>
               </div>
             </CardBody>
@@ -241,17 +283,34 @@ export function ReconcileDocsApp() {
                   e.preventDefault();
                   setPdfDropActive(false);
                 }}
-                onDrop={(e) => handleDropEvent(e, ".pdf", handlePdfFile, setPdfDropActive)}
+                onDrop={(e) => handleDropEvent(e, ".pdf", handlePdfSelection, setPdfDropActive)}
               >
                 <div className="flex flex-col items-center gap-3">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className="text-slate-400">
                     <path d="M12 3v6M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <p className="text-slate-700 text-lg font-medium">Upload PDF Document</p>
-                  <p className="text-base text-slate-600">Upload an invoice or document to compare against the Excel data</p>
+                  <p className="text-base text-slate-600">Select a PDF first, then upload it when you are ready to parse.</p>
 
-                  <input ref={pdfInputRef} type="file" accept=".pdf" className="hidden" onChange={(e) => handlePdfFile(e.target.files?.[0] ?? null)} />
-                  <button type="button" onClick={() => pdfInputRef.current?.click()} className="mt-3 px-5 py-2 rounded-md border border-dashed border-slate-300 text-slate-700 hover:border-emerald-400 hover:text-emerald-700">Click or drag PDF here</button>
+                  <input ref={pdfInputRef} type="file" accept=".pdf" className="hidden" onChange={(e) => handlePdfSelection(e.target.files?.[0] ?? null)} />
+                  <p className="text-sm text-slate-500">{pendingStatementFile ? `Ready to upload: ${pendingStatementFile.name}` : "No PDF file selected yet."}</p>
+                  <button type="button" onClick={() => pdfInputRef.current?.click()} className="mt-3 px-5 py-2 rounded-md border border-dashed border-slate-300 text-slate-700 hover:border-emerald-400 hover:text-emerald-700">Select PDF file</button>
+
+                  <div className="w-full max-w-md text-left">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">PDF Password (if encrypted)</label>
+                    <input
+                      type="password"
+                      value={pdfPassword}
+                      onChange={(e) => setPdfPassword(e.target.value)}
+                      placeholder="Leave empty if PDF is not password-protected"
+                      className="w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-900 text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <button type="button" onClick={uploadPendingStatement} disabled={!pendingStatementFile || uploading || progressPoll} className="mt-2 inline-flex items-center gap-2 px-5 py-2 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50" aria-busy={uploadingAction === "statement"}>
+                    {uploadingAction === "statement" && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />}
+                    {uploadingAction === "statement" ? "Uploading..." : "Upload PDF"}
+                  </button>
                 </div>
               </CardBody>
             </Card>
@@ -314,19 +373,10 @@ export function ReconcileDocsApp() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    PDF Password (if encrypted)
-                  </label>
-                  <input
-                    type="password"
-                    value={pdfPassword}
-                    onChange={(e) => setPdfPassword(e.target.value)}
-                    placeholder="Leave empty if PDF is not password-protected"
-                    className="w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-900 text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
-                  />
+                  <p className="text-sm text-slate-500">PDF password is used during upload.</p>
                 </div>
-                <Button onClick={handleAnalyze} disabled={!spreadsheetUpload || !statementUpload || uploading || progressPoll} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white">
-                  {progressPoll ? "Reconciling..." : "Reconcile"}
+                <Button onClick={handleAnalyze} disabled={!spreadsheetUpload || !statementUpload || uploading || progressPoll} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white" aria-busy={uploadingAction === "reconcile"}>
+                  {uploadingAction === "reconcile" ? "Reconciling..." : progressPoll ? "Reconciling..." : "Reconcile"}
                 </Button>
                 {message ? <p className="mt-2 text-base text-slate-700">{message}</p> : null}
                 {(progressPoll || lastProgressData) && (progressData ?? lastProgressData) && (

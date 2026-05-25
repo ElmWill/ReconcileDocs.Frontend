@@ -12,6 +12,7 @@ interface Props {
 interface UploadState {
   spreadsheet?: File | null;
   statement?: File | null;
+  statementPassword?: string;
 }
 
 export function DocumentUploadForm({ onUploaded }: Props) {
@@ -33,7 +34,7 @@ export function DocumentUploadForm({ onUploaded }: Props) {
     setMessage("");
 
     const result =
-      kind === DocumentKind.Spreadsheet ? await reconcileDocsApi.uploadSpreadsheet(file) : await reconcileDocsApi.uploadStatement(file);
+      kind === DocumentKind.Spreadsheet ? await reconcileDocsApi.uploadSpreadsheet(file) : await reconcileDocsApi.uploadStatement(file, files.statementPassword || undefined);
 
     setBusy(false);
 
@@ -64,6 +65,10 @@ export function DocumentUploadForm({ onUploaded }: Props) {
           <label className="block space-y-2">
             <span className="text-sm font-medium text-sand-100/80">PDF statement</span>
             <Input type="file" accept=".pdf" onChange={(event) => setFiles((current) => ({ ...current, statement: event.target.files?.[0] ?? null }))} />
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-sand-100/80">PDF password (if encrypted)</span>
+            <Input type="password" value={files.statementPassword ?? ""} onChange={(event) => setFiles((current) => ({ ...current, statementPassword: event.target.value }))} placeholder="Optional" />
           </label>
           <Button type="button" onClick={() => handleUpload(DocumentKind.StatementPdf)} disabled={busy || !hasFiles}>
             Upload statement

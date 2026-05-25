@@ -35,9 +35,12 @@ export const reconcileDocsApi = {
     formData.append("file", file);
     return sendRequest<UploadDocumentResult>(BackendApiUrl.uploadSpreadsheet, "POST", formData);
   },
-  async uploadStatement(file: File) {
+  async uploadStatement(file: File, password?: string) {
     const formData = new FormData();
     formData.append("file", file);
+    if (password) {
+      formData.append("password", password);
+    }
     return sendRequest<UploadDocumentResult>(BackendApiUrl.uploadStatement, "POST", formData);
   },
   async startReconcile(payload: { spreadsheetUploadId: string; statementUploadId: string; password?: string }) {
@@ -55,12 +58,15 @@ export const reconcileDocsApi = {
   async getReconcileMatches(runId: string, pageNumber?: number, pageSize?: number, matchedOnly?: boolean) {
     return sendRequest<GetReconcileMatchesResult>(BackendApiUrl.getReconcileMatches(runId, pageNumber, pageSize, matchedOnly), "GET");
   },
-  async bulkUploadStatements(files: File[], spreadsheetUploadId: string) {
+  async bulkUploadStatements(files: File[], spreadsheetUploadId: string, password?: string) {
     const formData = new FormData();
     for (const file of files) {
       formData.append("files", file);
     }
     formData.append("spreadsheetUploadId", spreadsheetUploadId);
+    if (password) {
+      formData.append("password", password);
+    }
     return sendRequest<BulkUploadStatementsResult>(BackendApiUrl.bulkUploadStatements, "POST", formData);
   },
   async bulkReconcile(payload: { spreadsheetUploadId: string; statementUploadIds: string[]; password?: string }) {
