@@ -19,6 +19,7 @@ export interface DocumentUploadSummary {
   sizeBytes: number;
   uploadedAtUtc: string;
   reconcileStatus: number;
+  isUsedInReconcile: boolean;
 }
 
 export interface ReconcileRunSummary {

@@ -39,35 +39,44 @@ export function DashboardView({ summary, uploads, runs, isLoading }: Props) {
         ))}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-2">
+      <section className="space-y-6">
         <Card>
           <CardTitle>Recent uploads</CardTitle>
           <CardBody>
-            <Table>
-              <thead>
-                <tr className="border-b border-white/10 text-xs uppercase tracking-[0.22em] text-slate-500">
-                  <th className="py-2 pr-3 text-slate-900">File</th>
-                  <th className="py-2 pr-3 text-slate-900">Size</th>
-                  <th className="py-2 pr-3 text-slate-900">Uploaded</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(uploads ?? []).map((upload) => (
-                  <tr key={upload.id} className="border-b last:border-b-0">
-                    <td className="py-3 pr-3 font-medium text-slate-800">{upload.originalFileName}</td>
-                    <td className="py-3 pr-3 text-slate-600">{Math.round(upload.sizeBytes / 1024)} KB</td>
-                    <td className="py-3 pr-3 text-slate-600">{formatDate(upload.uploadedAtUtc)}</td>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[720px] table-auto">
+                <thead>
+                  <tr className="border-b border-white/10 text-xs uppercase tracking-[0.22em] text-slate-500">
+                    <th className="py-2 pr-4 text-slate-900">File</th>
+                    <th className="py-2 pr-4 text-slate-900">Size</th>
+                    <th className="py-2 pr-4 text-slate-900">Reconcile</th>
+                    <th className="py-2 pl-6 text-slate-900">Uploaded</th>
                   </tr>
-                ))}
-                {!(uploads?.length) && (
-                  <tr>
-                    <td className="py-4 text-slate-500" colSpan={3}>
-                      No uploads yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {(uploads ?? []).map((upload) => (
+                    <tr key={upload.id} className="border-b last:border-b-0 align-top">
+                      <td className="py-3 pr-4 font-medium text-slate-800 break-words">{upload.originalFileName}</td>
+                      <td className="py-3 pr-4 whitespace-nowrap text-slate-600">{Math.round(upload.sizeBytes / 1024)} KB</td>
+                      <td className="py-3 pr-4 text-slate-600">
+                        <span className={`inline-flex max-w-full items-center gap-2 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${upload.isUsedInReconcile ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                          <span aria-hidden="true">{upload.isUsedInReconcile ? "✓" : "○"}</span>
+                          {upload.isUsedInReconcile ? "Used" : "Not used"}
+                        </span>
+                      </td>
+                      <td className="py-3 pl-6 text-slate-600 whitespace-nowrap">{formatDate(upload.uploadedAtUtc)}</td>
+                    </tr>
+                  ))}
+                  {!(uploads?.length) && (
+                    <tr>
+                      <td className="py-4 text-slate-500" colSpan={4}>
+                        No uploads yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            </div>
           </CardBody>
         </Card>
 
