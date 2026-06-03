@@ -13,7 +13,9 @@ import type {
   ReconcileProgressResult,
   BulkUploadStatementsResult,
   BulkReconcileResult,
-  GetReconcileMatchesResult
+  GetReconcileMatchesResult,
+  LoginResult,
+  CreateUserResult
 } from "@/types/api";
 
 async function sendRequest<T>(url: string, method: string, body?: unknown) {
@@ -21,6 +23,9 @@ async function sendRequest<T>(url: string, method: string, body?: unknown) {
 }
 
 export const reconcileDocsApi = {
+  async login(payload: { username: string; password: string }) {
+    return sendRequest<LoginResult>(`${BackendApiUrl.authLogin}`, "POST", payload);
+  },
   async getDashboardSummary() {
     return sendRequest<DashboardSummary>(BackendApiUrl.dashboardSummary, "GET");
   },
@@ -77,6 +82,9 @@ export const reconcileDocsApi = {
   },
   async suggestTemplate(payload: SuggestTemplatePayload) {
     return sendRequest<SuggestTemplateResult>(BackendApiUrl.suggestTemplate, "POST", payload);
+  },
+  async createUser(payload: { username: string; password: string; role: string }) {
+    return sendRequest<CreateUserResult>(BackendApiUrl.createUser, "POST", payload);
   }
 };
 

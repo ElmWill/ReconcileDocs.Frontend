@@ -1,4 +1,5 @@
 import type { ApiProblem, FetchOutcome } from "@/types/api";
+import { clearAccessToken, getAccessToken } from "@/functions/authSession";
 
 function buildProblem(status: number, title: string, detail?: string): ApiProblem {
   return { status, title, detail };
@@ -10,6 +11,10 @@ export async function tryFetchJson<T>(input: RequestInfo | URL, init?: RequestIn
     const contentType = response.headers.get("content-type") ?? "";
     const isJson = contentType.includes("application/json");
     const payload = isJson ? await response.json().catch(() => null) : await response.text().catch(() => "");
+
+    if (response.status === 401) {
+      clearAccessToken();
+    }
 
     if (!response.ok) {
       const title = typeof payload === "object" && payload && "title" in payload ? String((payload as { title?: string }).title ?? "Request failed") : "Request failed";
@@ -37,17 +42,20 @@ export async function tryFetchJson<T>(input: RequestInfo | URL, init?: RequestIn
 }
 
 export function buildJsonRequestInit(method: string, body?: unknown): RequestInit {
+  const accessToken = getAccessToken();
+  const headers = accessToken ? { authorization: `Bearer ${accessToken}` } : undefined;
+
   if (body instanceof FormData) {
-    return { method, body };
+    return { method, body, headers };
   }
 
   if (body === undefined) {
-    return { method };
+    return { method, headers };
   }
 
   return {
     method,
-    headers: { "content-type": "application/json" },
+    headers: { ...(headers ?? {}), "content-type": "application/json" },
     body: JSON.stringify(body)
   };
 }

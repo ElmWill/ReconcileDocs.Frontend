@@ -1,20 +1,22 @@
 import { useRef, useState, useEffect } from "react";
 import useSWR from "swr";
 import { DashboardView } from "@/components/reconcile-docs/dashboard";
-import { BulkUploadCard } from "@/components/reconcile-docs/bulk-upload";
 import { ReconcileResults } from "@/components/reconcile-docs/results";
 import { Card, CardBody, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BackendApiUrl } from "@/functions/BackendApiUrl";
 import { reconcileDocsApi } from "@/functions/api/reconcileDocsApi";
+import { useAuthSession } from "@/functions/useAuthSession";
 import { useSwrFetcherWithAccessToken } from "@/functions/useSwrFetcherWithAccessToken";
 import type { DashboardSummary, DocumentUploadSummary, ReconcileRunSummary, ReconcileProgressResult } from "@/types/api";
 
 export function ReconcileDocsApp() {
+  const { session } = useAuthSession();
   const fetcher = useSwrFetcherWithAccessToken();
-  const summary = useSWR<DashboardSummary>(BackendApiUrl.dashboardSummary, fetcher);
-  const uploads = useSWR<DocumentUploadSummary[]>(BackendApiUrl.dashboardUploads(20), fetcher);
-  const runs = useSWR<ReconcileRunSummary[]>(BackendApiUrl.dashboardRuns(20), fetcher);
+  const canLoadData = Boolean(session);
+  const summary = useSWR<DashboardSummary>(canLoadData ? BackendApiUrl.dashboardSummary : null, canLoadData ? fetcher : null);
+  const uploads = useSWR<DocumentUploadSummary[]>(canLoadData ? BackendApiUrl.dashboardUploads(20) : null, canLoadData ? fetcher : null);
+  const runs = useSWR<ReconcileRunSummary[]>(canLoadData ? BackendApiUrl.dashboardRuns(20) : null, canLoadData ? fetcher : null);
 
   const [uploading, setUploading] = useState(false);
   const [uploadingAction, setUploadingAction] = useState<"spreadsheet" | "statement" | "reconcile" | null>(null);
@@ -185,6 +187,10 @@ export function ReconcileDocsApp() {
 
   const spreadsheetUpload = spreadsheetUploads.find((u) => u.id === selectedSpreadsheetUploadId) ?? null;
   const statementUpload = statementUploads.find((u) => u.id === selectedStatementUploadId) ?? null;
+
+  if (!session) {
+    return <div className="py-10 text-slate-500">Checking session...</div>;
+  }
 
   async function handleAnalyze() {
     if (!spreadsheetUpload || !statementUpload) {
@@ -371,9 +377,6 @@ export function ReconcileDocsApp() {
                       </option>
                     ))}
                   </select>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">PDF password is used during upload.</p>
                 </div>
                 <Button onClick={handleAnalyze} disabled={!spreadsheetUpload || !statementUpload || uploading || progressPoll} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white" aria-busy={uploadingAction === "reconcile"}>
                   {uploadingAction === "reconcile" ? "Reconciling..." : progressPoll ? "Reconciling..." : "Reconcile"}

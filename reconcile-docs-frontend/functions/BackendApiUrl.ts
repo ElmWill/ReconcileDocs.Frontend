@@ -3,6 +3,7 @@ import { AppSettings } from "@/functions/AppSettings";
 const baseUrl = AppSettings.backendProxyBase;
 
 export const BackendApiUrl = {
+  authLogin: `${baseUrl}/api/auth/login`,
   dashboardSummary: `${baseUrl}/api/dashboard/summary`,
   dashboardUploads: (take = 20) => `${baseUrl}/api/dashboard/uploads?take=${take}`,
   dashboardRuns: (take = 20) => `${baseUrl}/api/dashboard/runs?take=${take}`,
@@ -27,5 +28,6 @@ export const BackendApiUrl = {
   },
   bulkReconcile: `${baseUrl}/api/documents/reconcile/bulk`,
   createTemplate: `${baseUrl}/api/templates`,
-  suggestTemplate: `${baseUrl}/api/templates/suggest`
+  suggestTemplate: `${baseUrl}/api/templates/suggest`,
+  createUser: `${baseUrl}/api/users`
 };

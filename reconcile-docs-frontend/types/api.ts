@@ -80,6 +80,21 @@ export interface BulkReconcileResult {
   totalEnqueued: number;
 }
 
+export interface LoginResult {
+  userId: string;
+  username: string;
+  role: string;
+  accessToken: string;
+  expiresAtUtc: string;
+}
+
+export interface CreateUserResult {
+  id: string;
+  username: string;
+  role: string;
+  createdAtUtc: string;
+}
+
 export interface ReconcileMatchDto {
   id: string;
   spreadsheetRowNumber: number;
